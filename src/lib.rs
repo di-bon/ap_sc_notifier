@@ -1,1 +1,3 @@
 mod simulation_controller_notifier;
+
+pub use simulation_controller_notifier::SimulationControllerNotifier;
