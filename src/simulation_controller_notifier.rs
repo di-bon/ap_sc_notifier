@@ -1,4 +1,4 @@
-use std::fmt::{format, Debug, Formatter};
+use std::fmt::{Debug, Formatter};
 use crossbeam_channel::Sender;
 use messages::node_event::NodeEvent;
 
@@ -14,6 +14,7 @@ impl Debug for SimulationControllerNotifier {
 
 impl SimulationControllerNotifier {
     /// Returns a new instance of `SimulationControllerNotifier`
+    #[must_use]
     pub fn new(simulation_controller_tx: Sender<NodeEvent>) -> Self {
         Self {
             simulation_controller_tx,
@@ -21,7 +22,7 @@ impl SimulationControllerNotifier {
     }
 
     /// Sends a `NodeEvent` into the channel shared with the simulation controller
-    /// # Panic
+    /// # Panics
     /// Panics if the transmission fails
     pub fn send_event(&self, node_event: NodeEvent) {
         match self.simulation_controller_tx.send(node_event) {
