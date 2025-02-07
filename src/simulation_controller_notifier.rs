@@ -1,4 +1,5 @@
 use std::fmt::{Debug, Formatter};
+use std::panic;
 use crossbeam_channel::Sender;
 use messages::node_event::NodeEvent;
 
@@ -25,12 +26,16 @@ impl SimulationControllerNotifier {
     /// # Panics
     /// Panics if the transmission fails
     pub fn send_event(&self, node_event: NodeEvent) {
+        panic::set_hook(Box::new(|info| {
+            let panic_msg = format!("Panic occurred: {info}");
+            log::error!("{panic_msg}");
+            eprintln!("{panic_msg}");
+        }));
+        
         match self.simulation_controller_tx.send(node_event) {
-            Ok(()) => log::info!("Node event sent"),
+            Ok(()) => log::info!("Node event sent to simulation controller"),
             Err(err) => {
-                let error = format!("Cannot send events to simulation controller. Error: {err:?}");
-                log::error!("{error}");
-                panic!("{error}");
+                panic!("Cannot send events to simulation controller. Error: {err:?}");
             }
         }
     }
@@ -38,6 +43,7 @@ impl SimulationControllerNotifier {
 
 #[cfg(test)]
 mod tests {
+    #![allow(unused_variables)]
     use crossbeam_channel::unbounded;
     use wg_2024::packet::{Ack, Packet, PacketType};
     use super::*;
