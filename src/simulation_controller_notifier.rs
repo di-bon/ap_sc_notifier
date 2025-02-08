@@ -1,7 +1,7 @@
-use std::fmt::{Debug, Formatter};
-use std::panic;
 use crossbeam_channel::Sender;
 use messages::node_event::NodeEvent;
+use std::fmt::{Debug, Formatter};
+use std::panic;
 
 pub struct SimulationControllerNotifier {
     simulation_controller_tx: Sender<NodeEvent>,
@@ -22,7 +22,7 @@ impl SimulationControllerNotifier {
         }
     }
 
-    /// Sends a `NodeEvent` into the channel shared with the simulation controller
+    /// Sends a `NodeEvent` to the simulation controller
     /// # Panics
     /// Panics if the transmission fails
     pub fn send_event(&self, node_event: NodeEvent) {
@@ -31,11 +31,11 @@ impl SimulationControllerNotifier {
             log::error!("{panic_msg}");
             eprintln!("{panic_msg}");
         }));
-        
+
         match self.simulation_controller_tx.send(node_event) {
-            Ok(()) => log::info!("Node event sent to simulation controller"),
+            Ok(()) => log::info!("NodeEvent sent to SimulationController"),
             Err(err) => {
-                panic!("Cannot send events to simulation controller. Error: {err:?}");
+                panic!("Cannot send NodeEvent to simulation controller. Error: {err:?}");
             }
         }
     }
@@ -44,9 +44,9 @@ impl SimulationControllerNotifier {
 #[cfg(test)]
 mod tests {
     #![allow(unused_variables)]
+    use super::*;
     use crossbeam_channel::unbounded;
     use wg_2024::packet::{Ack, Packet, PacketType};
-    use super::*;
 
     #[test]
     fn initialize() {
@@ -62,17 +62,11 @@ mod tests {
         let (tx, rx) = unbounded();
         let notifier = SimulationControllerNotifier::new(tx);
 
-        let event = NodeEvent::PacketSent(
-            Packet {
-                routing_header: Default::default(),
-                session_id: 0,
-                pack_type: PacketType::Ack(
-                    Ack {
-                        fragment_index: 0,
-                    }
-                ),
-            }
-        );
+        let event = NodeEvent::PacketSent(Packet {
+            routing_header: Default::default(),
+            session_id: 0,
+            pack_type: PacketType::Ack(Ack { fragment_index: 0 }),
+        });
         notifier.send_event(event.clone());
 
         let received = rx.recv().unwrap();
@@ -85,17 +79,11 @@ mod tests {
         let (tx, rx) = unbounded();
         let notifier = SimulationControllerNotifier::new(tx);
 
-        let event = NodeEvent::PacketSent(
-            Packet {
-                routing_header: Default::default(),
-                session_id: 0,
-                pack_type: PacketType::Ack(
-                    Ack {
-                        fragment_index: 0,
-                    }
-                ),
-            }
-        );
+        let event = NodeEvent::PacketSent(Packet {
+            routing_header: Default::default(),
+            session_id: 0,
+            pack_type: PacketType::Ack(Ack { fragment_index: 0 }),
+        });
 
         drop(rx);
         notifier.send_event(event.clone());
